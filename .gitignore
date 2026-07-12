@@ -14,3 +14,10 @@ env/
 
 # Local configuration
 .env
+
+# Day 5 runtime logs
+day05_shell_etl/logs/*.log
+
+# Python cache
+__pycache__/
+*.pyc
