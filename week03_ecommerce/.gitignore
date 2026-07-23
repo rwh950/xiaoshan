@@ -1,0 +1,22 @@
+# 原始和完整数据文件
+data/source/*
+data/raw/*
+
+# 保留目录
+!data/source/.gitkeep
+!data/raw/.gitkeep
+
+# Python缓存
+__pycache__/
+*.pyc
+
+# Python虚拟环境
+.venv/
+venv/
+
+# 日志
+logs/*.log
+
+# 编辑器配置
+.vscode/
+.idea/
