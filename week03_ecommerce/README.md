@@ -18,7 +18,7 @@
 - [x] 上传完整 CSV 到 HDFS
 - [x] 上传样例数据和质量报告到 HDFS
 - [x] Spark Standalone 读取 HDFS 数据
-- [ ] Shell 串联完整流程
+- [x] Shell 串联完整流程
 - [ ] 完成第三周验收
 ## 项目环境
 
