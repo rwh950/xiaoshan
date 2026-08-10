@@ -82,3 +82,64 @@ Country 去重数量：38
 4. UnitPrice 小于 0 的记录仅 2 条，后续进行逐条检查。
 5. Quantity 不存在等于 0 的记录。
 6. Day01 暂不进行数据删除，仅建立数据质量基线。
+
+### Day02 最终交叉验证
+
+非 C 开头负数量记录：
+
+- UnitPrice = 0：1336
+- UnitPrice > 0：0
+- UnitPrice < 0：0
+
+说明全部 1336 条非 C 开头负数量记录同时为零价格记录，
+结合 Description 中的 check、damages 等内容，
+后续统一作为 ADJUSTMENT 类型处理。
+
+零价格记录：
+
+- UnitPrice = 0 总数：2515
+- Quantity < 0：1336
+- Quantity > 0：1179
+- C 开头订单：0
+
+其中负数量零价格记录进入 ADJUSTMENT，
+剩余 1179 条正数量零价格记录进入 ZERO_PRICE，
+不直接作为正常销售记录参与销售额计算。
+
+Description 缺失：
+
+- Description NULL + UnitPrice = 0：1454
+- Description NULL + UnitPrice != 0：0
+
+说明全部 Description 缺失记录同时属于零价格数据，
+暂不删除，根据其他业务字段分类保存。
+
+负价格记录：
+
+共 2 条，Description 均为 Adjust bad debt，
+属于坏账调整，归入 ADJUSTMENT。
+
+### Day03 最终分类规则
+
+分类优先级：
+
+1. REJECTED
+2. RETURN
+3. ADJUSTMENT
+4. ZERO_PRICE
+5. SALE
+
+RETURN：
+InvoiceNo 以 C 开头。
+
+ADJUSTMENT：
+非 C 开头且 Quantity < 0，
+或者 UnitPrice < 0。
+
+ZERO_PRICE：
+非 C 开头、Quantity > 0 且 UnitPrice = 0。
+
+SALE：
+非 C 开头、Quantity > 0 且 UnitPrice > 0。
+
+CustomerID 缺失和 Description 缺失暂不作为删除条件。
