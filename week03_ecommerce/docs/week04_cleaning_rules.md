@@ -143,3 +143,124 @@ SALE：
 非 C 开头、Quantity > 0 且 UnitPrice > 0。
 
 CustomerID 缺失和 Description 缺失暂不作为删除条件。
+## Day03 正式清洗规则
+
+### 1. 去重
+
+标准化后对8个核心业务字段执行完全重复记录去除：
+
+- invoice_no
+- stock_code
+- description
+- quantity
+- invoice_date
+- unit_price
+- customer_id
+- country
+
+原始数据量：541909
+
+完全重复数据：5268
+
+去重后数据量：536641
+
+
+### 2. order_type 分类优先级
+
+分类严格按照以下顺序：
+
+1. REJECTED
+2. RETURN
+3. ADJUSTMENT
+4. ZERO_PRICE
+5. SALE
+
+
+### 3. REJECTED
+
+以下关键字段异常时归为 REJECTED：
+
+- invoice_no 为空
+- stock_code 为空
+- quantity 无法转换
+- invoice_date 无法转换
+- unit_price 无法转换
+- quantity = 0
+
+CustomerID 和 Description 缺失不作为 REJECTED 条件。
+
+
+### 4. RETURN
+
+InvoiceNo 以 C 开头的记录归为 RETURN。
+
+Day02 已确认所有 C 开头订单的 Quantity 均为负数。
+
+
+### 5. ADJUSTMENT
+
+满足以下任一条件：
+
+- 非 RETURN 且 Quantity < 0
+- 非 RETURN 且 UnitPrice < 0
+
+包括库存调整、损坏、盘点以及 Adjust bad debt 等业务记录。
+
+
+### 6. ZERO_PRICE
+
+在排除 RETURN 和 ADJUSTMENT 后：
+
+UnitPrice = 0
+
+归为 ZERO_PRICE。
+
+ZERO_PRICE 不作为正常销售额统计数据。
+
+
+### 7. SALE
+
+在排除前面所有类型后，其余正常交易记录归为 SALE。
+
+正常 SALE 应满足：
+
+- Quantity > 0
+- UnitPrice > 0
+- InvoiceNo 非 C 开头
+
+
+### 8. 业务衍生字段
+
+新增：
+
+- amount
+- order_type
+- reject_reason
+- is_customer_missing
+- is_description_missing
+- invoice_year
+- invoice_month
+- invoice_day
+- invoice_hour
+- process_time
+
+其中：
+
+amount = quantity × unit_price
+
+不对 amount 使用绝对值。
+退货金额保持负数。
+
+
+### 9. Day03 验收
+
+- raw_count：541909
+- duplicate_count：5268
+- dedup_count：536641
+- SALE：524878
+- RETURN：9251
+- ADJUSTMENT：1338
+- ZERO_PRICE：1174
+- REJECTED：0
+
+分类总数必须等于 536641。
