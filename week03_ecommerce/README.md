@@ -186,3 +186,23 @@ less logs/week03_latest.log
 → 清洗结果写回HDFS
 ```
 
+
+## Week04 Day05 - Parquet Output
+
+- Raw records: 541909
+- Duplicate records: 5268
+- Clean records: 536641
+- Output format: Parquet
+- Compression: Snappy
+- Partition columns: invoice_year, invoice_month
+
+### Order Types
+
+- SALE: 524878
+- RETURN: 9251
+- ADJUSTMENT: 1338
+- ZERO_PRICE: 1174
+
+### Output Path
+
+hdfs://master:9000/user/hadoop/week03/clean
