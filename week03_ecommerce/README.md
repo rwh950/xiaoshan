@@ -206,3 +206,243 @@ less logs/week03_latest.log
 ### Output Path
 
 hdfs://master:9000/user/hadoop/week03/clean
+
+# Week04 ETL Pipeline
+
+## 1. 项目目标
+
+使用 Spark 对 Online Retail 电商交易数据进行离线 ETL 处理，
+完成原始数据读取、Schema 标准化、重复数据处理、业务分类、
+数据质量检查、Parquet 分区存储以及 Spark SQL 分析。
+
+## 2. 数据链路
+
+Online Retail.xlsx
+    ↓
+CSV
+    ↓
+HDFS Raw
+    ↓
+Spark ETL
+    ↓
+去重 + 业务分类
+    ↓
+Quality Gate
+    ↓
+Parquet
+    ↓
+HDFS Clean
+    ↓
+Spark SQL Analysis
+
+## 3. 集群环境
+
+| 节点 | IP | 角色 |
+|---|---|---|
+| master | 192.168.88.130 | Hadoop NameNode / ResourceManager |
+| slave1 | 192.168.88.131 | Hadoop DataNode / NodeManager |
+| slave2 | 192.168.88.132 | Hadoop DataNode / NodeManager |
+| main | 192.168.88.133 | Spark Master / Python Development |
+| spark-slave | 192.168.88.134 | Spark Worker |
+
+Spark Master:
+
+spark://main:7077
+
+HDFS:
+
+hdfs://master:9000
+
+## 4. Day01-Day02 数据画像
+
+原始数据量：
+
+541909
+
+字段数量：
+
+8
+
+Quantity < 0：
+
+10624
+
+InvoiceNo 以 C 开头：
+
+9288
+
+UnitPrice = 0：
+
+2515
+
+UnitPrice < 0：
+
+2
+
+Description 缺失：
+
+1454
+
+CustomerID 缺失：
+
+135080
+
+完全重复记录：
+
+5268
+
+## 5. Day03 清洗结果
+
+去重后数据量：
+
+536641
+
+业务分类：
+
+| order_type | count |
+|---|---:|
+| SALE | 524878 |
+| RETURN | 9251 |
+| ADJUSTMENT | 1338 |
+| ZERO_PRICE | 1174 |
+| REJECTED | 0 |
+
+分类数量合计：
+
+536641
+
+## 6. Day04 Quality Gate
+
+数据数量对账：
+
+541909 = 5268 + 536641
+
+分类数据对账：
+
+524878 + 9251 + 1338 + 1174 + 0 = 536641
+
+分类规则验证：
+
+- SALE violation = 0
+- RETURN violation = 0
+- ADJUSTMENT violation = 0
+- ZERO_PRICE violation = 0
+
+其他质量检查：
+
+- amount null = 0
+- date violation = 0
+- CustomerID flag violation = 0
+- Description flag violation = 0
+- duplicate after clean = 0
+
+## 7. Parquet 输出
+
+输出路径：
+
+hdfs://master:9000/user/hadoop/week03/clean
+
+格式：
+
+Parquet
+
+压缩：
+
+Snappy
+
+分区字段：
+
+- invoice_year
+- invoice_month
+
+Parquet 回读数量：
+
+536641
+
+## 8. Spark SQL 分析
+
+已完成：
+
+- 数据总览
+- 业务类型分布
+- 正常销售核心指标
+- 国家销售额 Top10
+- 商品销售额 Top10
+- 商品销量 Top10
+- 月度销售趋势
+- 小时销售趋势
+- 用户销售额 Top10
+- 退货统计
+- 净交易金额
+
+## 9. 核心分析结果
+
+正常销售：
+
+销售明细：
+
+524878
+
+不同订单：
+
+19960
+
+不同客户：
+
+4338
+
+不同商品：
+
+3922
+
+销售数量：
+
+5572420
+
+销售额：
+
+10642110.80
+
+月度销售峰值：
+
+2011-11
+
+销售额：
+
+1503866.78
+
+小时订单量峰值：
+
+12:00
+
+订单量：
+
+3220
+
+小时销售额峰值：
+
+10:00
+
+销售额：
+
+1444814.77
+
+## 10. 主要项目脚本
+
+scripts/inspect_raw_spark.py
+    原始数据检查
+
+scripts/clean_online_retail.py
+    ETL 清洗与分类
+
+scripts/validate_clean_data.py
+    数据质量验证
+
+scripts/write_parquet.py
+    Parquet 分区写入
+
+scripts/day06_spark_sql.py
+    Spark SQL 分析
+
+sql/day06_analysis.sql
+    SQL 分析脚本
